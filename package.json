@@ -1,0 +1,18 @@
+{
+  "name": "lukso-clonex",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@lukso/lsp-smart-contracts": "^0.10.1",
+    "@openzeppelin/contracts": "^4.9.1"
+  },
+  "devDependencies": {
+    "hardhat": "^2.15.0"
+  }
+}
