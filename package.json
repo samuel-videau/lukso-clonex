@@ -10,9 +10,12 @@
   "license": "ISC",
   "dependencies": {
     "@lukso/lsp-smart-contracts": "^0.10.1",
-    "@openzeppelin/contracts": "^4.9.1"
+    "@openzeppelin/contracts": "^4.9.1",
+    "dotenv": "^16.3.1"
   },
   "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.2.3",
+    "@nomiclabs/hardhat-etherscan": "^3.1.7",
     "hardhat": "^2.15.0"
   }
 }

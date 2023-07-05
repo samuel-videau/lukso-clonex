@@ -17,18 +17,16 @@ contract LuksoCloneX is LSP8IdentifiableDigitalAsset, ReentrancyGuard {
     uint256 constant PUBLIC_MINT_END_BLOCK = 3_000_000;
     uint256 constant PRIVATE_MINT_END_BLOCK = 2_000_000;
 
+    bytes32 private constant _merkleRoot = 0x9247fd44ab1e9cbaa8bb670ba0313dc5a8d881a17feff76643b2ca7e6504a23f;
+
     mapping (address => uint256) private _mintedTokensPerAddress;
 
-    bytes32 private _merkleRoot;
-
-    constructor(address owner) LSP8IdentifiableDigitalAsset('LuksoCloneX', 'lCloneX', owner) {
+    constructor(address owner_) LSP8IdentifiableDigitalAsset('LuksoCloneX', 'lCloneX', owner_) {
         _setData(_LSP4_METADATA_KEY, bytes('ipfs://QmUkCsVu9pwXpbC3CmKNgQhZYnqHbcA7y3JxmdUmqrALcp'));
         _setData(_LSP8_TOKEN_ID_TYPE, hex"02");
         bytes memory zeroBytes = hex"00000000";
         bytes memory baseURI = abi.encodePacked(zeroBytes, bytes('ipfs://QmZh7P3YZNxFZUiHkXLNgAtdk2T6PAza3S15Jjg1DzxVGf'));
         _setData(_LSP8_TOKEN_METADATA_BASE_URI, baseURI);
-
-        _merkleRoot = 0x9247fd44ab1e9cbaa8bb670ba0313dc5a8d881a17feff76643b2ca7e6504a23f;
     }
 
     function publicMint(
