@@ -4,7 +4,7 @@ import {LSP8IdentifiableDigitalAsset} from "@lukso/lsp-smart-contracts/contracts
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 
-import {_LSP4_METADATA_KEY} from "@lukso/lsp-smart-contracts/contracts/LSP4DigitalAssetMetadata/LSP4Constants.sol";
+import {_LSP4_METADATA_KEY, _LSP4_CREATORS_ARRAY_KEY, _LSP4_CREATORS_MAP_KEY_PREFIX} from "@lukso/lsp-smart-contracts/contracts/LSP4DigitalAssetMetadata/LSP4Constants.sol";
 
 contract LuksoCloneX is LSP8IdentifiableDigitalAsset, ReentrancyGuard {
     bytes32 constant _LSP8_TOKEN_ID_TYPE = 0x715f248956de7ce65e94d9d836bfead479f7e70d69b718d47bfe7b00e05b4fe4;
@@ -24,9 +24,20 @@ contract LuksoCloneX is LSP8IdentifiableDigitalAsset, ReentrancyGuard {
     constructor(address owner_) LSP8IdentifiableDigitalAsset('LuksoCloneX', 'lCloneX', owner_) {
         _setData(_LSP4_METADATA_KEY, bytes('ipfs://QmUkCsVu9pwXpbC3CmKNgQhZYnqHbcA7y3JxmdUmqrALcp'));
         _setData(_LSP8_TOKEN_ID_TYPE, hex"02");
+
         bytes memory zeroBytes = hex"00000000";
         bytes memory baseURI = abi.encodePacked(zeroBytes, bytes('ipfs://QmZh7P3YZNxFZUiHkXLNgAtdk2T6PAza3S15Jjg1DzxVGf'));
         _setData(_LSP8_TOKEN_METADATA_BASE_URI, baseURI);
+
+        // We set the length of the array to 1
+        _setData(_LSP4_CREATORS_ARRAY_KEY, hex"01");
+
+        // We set the first element of the array to the creator address
+        _setData(0x114bd03b3a46d48759680d81ebb2b41400000000000000000000000000000000, hex"5870dC9aEB06E26A0C8130eF2C6C12d80b1E0375");
+
+        // Set the creator map with interfaceId=66767497 and creator index 0
+        bytes32 creatorsMapKey = bytes32(abi.encodePacked(_LSP4_CREATORS_MAP_KEY_PREFIX, 0x5870dC9aEB06E26A0C8130eF2C6C12d80b1E0375));
+        _setData(creatorsMapKey , hex"667674970000000000000000");
     }
 
     function publicMint(
@@ -34,14 +45,16 @@ contract LuksoCloneX is LSP8IdentifiableDigitalAsset, ReentrancyGuard {
         uint256 amount,
         bool allowNonLSP1Recipient
     ) external payable nonReentrant {
+        uint256 tokenSupply = totalSupply(); // gas saving
+
         require(msg.value == PUBLIC_PRICE_PER_TOKEN * amount, "Invalid LYX amount sent");
         require(block.number <= PUBLIC_MINT_END_BLOCK, "Public mint ended");
         require(block.number > PRIVATE_MINT_END_BLOCK, "Public mint not started yet");
-        require(totalSupply() + amount <= MAX_SUPPLY, "Exceeds MAX_SUPPLY");
+        require(tokenSupply + amount <= MAX_SUPPLY, "Exceeds MAX_SUPPLY");
         require(_mintedTokensPerAddress[msg.sender] + amount <= MAX_MINT_PER_ADDRESS, "Exceeds MAX_MINT_PER_ADDRESS");
 
         for (uint256 i = 0; i < amount; i++) {
-            uint256 tokenId = totalSupply() + 1;
+            uint256 tokenId = ++tokenSupply;
             _mint(to, bytes32(tokenId), allowNonLSP1Recipient, "");
         }
 
@@ -54,14 +67,16 @@ contract LuksoCloneX is LSP8IdentifiableDigitalAsset, ReentrancyGuard {
         bool allowNonLSP1Recipient,
         bytes32[] calldata merkleProof
     ) external payable nonReentrant {
+        uint256 tokenSupply = totalSupply(); // gas saving
+
         require(MerkleProof.verify(merkleProof, _merkleRoot, keccak256(abi.encodePacked(msg.sender))), "Invalid merkle proof");
         require(msg.value == PRIVATE_PRICE_PER_TOKEN * amount, "Invalid LYX amount sent");
         require(block.number <= PRIVATE_MINT_END_BLOCK, "Private mint ended");
-        require(totalSupply() + amount <= MAX_SUPPLY, "Exceeds MAX_SUPPLY");
+        require(tokenSupply + amount <= MAX_SUPPLY, "Exceeds MAX_SUPPLY");
         require(_mintedTokensPerAddress[msg.sender] + amount <= MAX_MINT_PER_ADDRESS, "Exceeds MAX_MINT_PER_ADDRESS");
 
         for (uint256 i = 0; i < amount; i++) {
-            uint256 tokenId = totalSupply() + 1;
+            uint256 tokenId = ++tokenSupply;
             _mint(to, bytes32(tokenId), allowNonLSP1Recipient, "");
         }
 
