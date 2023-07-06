@@ -13,16 +13,24 @@ contract LuksoCloneX is LSP8IdentifiableDigitalAsset, ReentrancyGuard {
     uint256 constant PUBLIC_PRICE_PER_TOKEN = 0.2 ether;
     uint256 constant PRIVATE_PRICE_PER_TOKEN = 0.1 ether;
     uint256 constant MAX_SUPPLY = 100;
-    uint256 constant MAX_MINT_PER_ADDRESS = 3;
+    uint256 constant MAX_MINT_PER_WHITELISTED_ADDRESS = 3;
     uint256 constant PUBLIC_MINT_END_BLOCK = 3_000_000;
     uint256 constant PRIVATE_MINT_END_BLOCK = 2_000_000;
 
     bytes32 private constant _merkleRoot = 0x9247fd44ab1e9cbaa8bb670ba0313dc5a8d881a17feff76643b2ca7e6504a23f;
 
-    mapping (address => uint256) private _mintedTokensPerAddress;
+    mapping (address => uint256) private _mintedTokensPerWhitelistedAddress;
 
     constructor(address owner_) LSP8IdentifiableDigitalAsset('LuksoCloneX', 'lCloneX', owner_) {
-        _setData(_LSP4_METADATA_KEY, bytes('ipfs://QmUkCsVu9pwXpbC3CmKNgQhZYnqHbcA7y3JxmdUmqrALcp'));
+
+        // 4ed94534e6e56a4cf8cea54daa9fc9b59751668459433f8dba993763d5dc6e20 is the hash of the URI JSON content
+        bytes memory jsonUrl = abi.encodePacked(
+            bytes4(keccak256('keccak256(utf8)')),
+            hex"4ed94534e6e56a4cf8cea54daa9fc9b59751668459433f8dba993763d5dc6e20",
+            bytes('ipfs://QmUkCsVu9pwXpbC3CmKNgQhZYnqHbcA7y3JxmdUmqrALcp'));
+
+        _setData(_LSP4_METADATA_KEY, jsonUrl);
+
         _setData(_LSP8_TOKEN_ID_TYPE, hex"02");
 
         bytes memory zeroBytes = hex"00000000";
@@ -51,14 +59,11 @@ contract LuksoCloneX is LSP8IdentifiableDigitalAsset, ReentrancyGuard {
         require(block.number <= PUBLIC_MINT_END_BLOCK, "Public mint ended");
         require(block.number > PRIVATE_MINT_END_BLOCK, "Public mint not started yet");
         require(tokenSupply + amount <= MAX_SUPPLY, "Exceeds MAX_SUPPLY");
-        require(_mintedTokensPerAddress[msg.sender] + amount <= MAX_MINT_PER_ADDRESS, "Exceeds MAX_MINT_PER_ADDRESS");
 
         for (uint256 i = 0; i < amount; i++) {
             uint256 tokenId = ++tokenSupply;
             _mint(to, bytes32(tokenId), allowNonLSP1Recipient, "");
         }
-
-        _mintedTokensPerAddress[msg.sender] += amount;
     }
 
     function privateMint(
@@ -73,13 +78,13 @@ contract LuksoCloneX is LSP8IdentifiableDigitalAsset, ReentrancyGuard {
         require(msg.value == PRIVATE_PRICE_PER_TOKEN * amount, "Invalid LYX amount sent");
         require(block.number <= PRIVATE_MINT_END_BLOCK, "Private mint ended");
         require(tokenSupply + amount <= MAX_SUPPLY, "Exceeds MAX_SUPPLY");
-        require(_mintedTokensPerAddress[msg.sender] + amount <= MAX_MINT_PER_ADDRESS, "Exceeds MAX_MINT_PER_ADDRESS");
+        require(_mintedTokensPerWhitelistedAddress[msg.sender] + amount <= MAX_MINT_PER_WHITELISTED_ADDRESS, "Exceeds MAX_MINT_PER_ADDRESS");
 
         for (uint256 i = 0; i < amount; i++) {
             uint256 tokenId = ++tokenSupply;
             _mint(to, bytes32(tokenId), allowNonLSP1Recipient, "");
         }
 
-        _mintedTokensPerAddress[msg.sender] += amount;
+        _mintedTokensPerWhitelistedAddress[msg.sender] += amount;
     }
 }
