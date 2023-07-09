@@ -80,11 +80,11 @@ contract LuksoCloneX is LSP8IdentifiableDigitalAsset, ReentrancyGuard {
         require(tokenSupply + amount <= MAX_SUPPLY, "Exceeds MAX_SUPPLY");
         require(_mintedTokensPerWhitelistedAddress[msg.sender] + amount <= MAX_MINT_PER_WHITELISTED_ADDRESS, "Exceeds MAX_MINT_PER_ADDRESS");
 
+        _mintedTokensPerWhitelistedAddress[msg.sender] += amount;
+
         for (uint256 i = 0; i < amount; i++) {
             uint256 tokenId = ++tokenSupply;
             _mint(to, bytes32(tokenId), allowNonLSP1Recipient, "");
         }
-
-        _mintedTokensPerWhitelistedAddress[msg.sender] += amount;
     }
 }
